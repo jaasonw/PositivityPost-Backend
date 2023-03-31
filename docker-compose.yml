@@ -1,0 +1,31 @@
+version: "3.7"
+services:
+  dashboard:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: ppost_dashboard
+    restart: unless-stopped
+    ports:
+      - "8094:8090"
+    volumes:
+      - db_data:/pb_data
+      # - /app/pb_public:/pb_public #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  backend:
+    build: .
+    container_name: ppost_backend
+    command: python main.py
+    # command: ls -la
+    # command: gunicorn --chdir /app/src/ -k gevent -t 900 web_auth:auth_server --bind 0.0.0.0:8080 --capture-output --log-level debug
+    ports:
+      - "8080:8080"
+    # env_file:
+    #   - .env
+    volumes:
+      - db_data:/app
+
+volumes:
+  db_data:
